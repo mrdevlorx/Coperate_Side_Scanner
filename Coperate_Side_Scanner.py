@@ -113,8 +113,8 @@ def run_rustscan(targets: list[str], rustscan_opts: dict) -> dict:
 
     cmd += [
         "--",            # everything after -- is passed to nmap
+        "-Pn",           # skip host discovery (ping often blocked in corporate nets)
         "-sV",           # version detection
-        "--open",        # only show open ports
         "-oX", "-",      # XML output to stdout
         "--host-timeout", "30s",
     ]
@@ -124,9 +124,37 @@ def run_rustscan(targets: list[str], rustscan_opts: dict) -> dict:
 
     log(f"Running: {C.GREY}{' '.join(cmd)}{C.RESET}", "scan")
 
+    debug = rustscan_opts.get("debug", False)
+    scan_timeout = rustscan_opts.get("scan_timeout", 3600)
+
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True,
-                                timeout=rustscan_opts.get("scan_timeout", 3600))
+        if debug:
+            log("Debug-Modus aktiv – RustScan-Output wird live angezeigt.", "info")
+            stdout_lines: list[str] = []
+            result_stderr = ""
+            returncode = 0
+            with subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                  text=True) as proc:
+                assert proc.stdout is not None
+                assert proc.stderr is not None
+                for line in proc.stdout:
+                    print(line, end="", flush=True)
+                    stdout_lines.append(line)
+                result_stderr = proc.stderr.read()
+                try:
+                    proc.wait(timeout=scan_timeout)
+                except subprocess.TimeoutExpired:
+                    proc.kill()
+                    log("Scan timed out!", "err")
+                    return {}
+                returncode = proc.returncode
+            result_stdout = "".join(stdout_lines)
+        else:
+            result = subprocess.run(cmd, capture_output=True, text=True,
+                                    timeout=scan_timeout)
+            result_stdout = result.stdout
+            result_stderr = result.stderr
+            returncode = result.returncode
     except subprocess.TimeoutExpired:
         log("Scan timed out!", "err")
         return {}
@@ -134,12 +162,12 @@ def run_rustscan(targets: list[str], rustscan_opts: dict) -> dict:
         log("rustscan binary not found during scan execution.", "err")
         return {}
 
-    if result.returncode not in (0, 1):
-        log(f"rustscan exited with code {result.returncode}", "warn")
-        if result.stderr:
-            log(f"stderr: {result.stderr[:300]}", "warn")
+    if returncode not in (0, 1):
+        log(f"rustscan exited with code {returncode}", "warn")
+        if result_stderr:
+            log(f"stderr: {result_stderr[:300]}", "warn")
 
-    return parse_nmap_xml(result.stdout)
+    return parse_nmap_xml(result_stdout)
 
 
 def parse_nmap_xml(xml_output: str) -> dict:
@@ -468,6 +496,8 @@ Beispiele:
                        help="Kein echter Scan – nur Ziele anzeigen")
         p.add_argument("--no-color", action="store_true",
                        help="Keine ANSI-Farben in der Ausgabe")
+        p.add_argument("--debug", action="store_true",
+                       help="RustScan/Nmap-Output live in der CLI anzeigen")
 
     return parser
 
@@ -491,6 +521,7 @@ def main():
         "scan_timeout":    args.scan_timeout,
         "extra_nmap_args": args.nmap_args,
         "exclude":         args.exclude,
+        "debug":           args.debug,
     }
 
     if args.command == "folder":
