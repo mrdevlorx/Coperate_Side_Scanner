@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Network Scanner Tool - Powered by RustScan
+Corporate Side Scanner - Powered by RustScan
 Scans IP networks from site-specific text files and generates reports per site and overall.
 """
 
@@ -39,7 +39,7 @@ class C:
 def banner():
     print(f"""
 {C.CYAN}{C.BOLD}╔══════════════════════════════════════════════════════╗
-║         NETWORK SCANNER  ·  powered by RustScan        ║
+║         Corporate Side Scanner  ·  powered by RustScan        ║
 ╚══════════════════════════════════════════════════════╝{C.RESET}
 """)
 
@@ -422,13 +422,13 @@ def build_parser() -> argparse.ArgumentParser:
         epilog="""
 Beispiele:
   # Alle Standorte aus Ordner scannen und Berichte exportieren
-  python network_scanner.py folder /pfad/zu/sites --output ./reports
+  python Coperate_Side_Scanner.py folder /pfad/zu/sites --output ./reports
 
   # Einzelne IPs / Netze scannen
-  python network_scanner.py single 192.168.1.0/24 10.0.0.1 --site BERLIN --output ./reports
+  python Coperate_Side_Scanner.py single 192.168.1.0/24 10.0.0.1 --site BERLIN --output ./reports
 
   # Nur anzeigen was gescannt würde (kein echter Scan)
-  python network_scanner.py folder /pfad/zu/sites --dry-run
+  python Coperate_Side_Scanner.py folder /pfad/zu/sites --dry-run
         """
     )
 
