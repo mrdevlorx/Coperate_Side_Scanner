@@ -13,6 +13,7 @@ Scan multiple sites from structured text files, get per-site results and a combi
 - 📈 **Global summary report** — aggregated results across all sites
 - 💾 **JSON export** — one JSON file per site plus a combined `GLOBAL_REPORT` file
 - 🚫 **Exclude addresses** — skip specific IPs or networks via `--exclude`
+- 🐛 **Debug mode** — stream live RustScan/Nmap output directly to the terminal via `--debug`
 - 🎨 **Colored terminal output** — clear, readable scan progress and results
 
 ---
@@ -116,6 +117,12 @@ python Coperate_Side_Scanner.py single 192.168.1.0/24 10.0.0.5 --site BERLIN --o
 python Coperate_Side_Scanner.py folder /pfad/zu/sites/ --dry-run
 ```
 
+### Debug mode — show live RustScan/Nmap output
+
+```bash
+python Coperate_Side_Scanner.py single 10.0.0.0/24 --debug
+```
+
 ---
 
 ## 🔧 Options
@@ -133,6 +140,7 @@ All options are available in both `folder` and `single` mode.
 | `--nmap-args` | — | Additional nmap arguments (passed after `--`) |
 | `--dry-run` | — | Show targets without running a real scan |
 | `--no-color` | — | Disable ANSI colors in terminal output |
+| `--debug` | — | Stream live RustScan/Nmap output to the terminal |
 
 ### `single` mode only
 
@@ -171,6 +179,11 @@ python Coperate_Side_Scanner.py single 10.10.0.0/24 \
 **No color output (e.g. for logging to file):**
 ```bash
 python Coperate_Side_Scanner.py folder ./sites --no-color --output ./reports | tee scan.log
+```
+
+**Debug mode — watch live RustScan/Nmap output:**
+```bash
+python Coperate_Side_Scanner.py single 10.10.0.0/24 --site DATACENTER --debug
 ```
 
 ---
@@ -234,6 +247,7 @@ reports/
 - Scanning networks requires appropriate authorization. Only scan systems you own or have explicit permission to scan.
 - RustScan requires **root/sudo** on some systems for certain scan types (e.g. SYN scans).
 - Large networks with many hosts may require increasing `--ulimit` and `--scan-timeout`.
+- Nmap is invoked with `-Pn` by default, skipping host discovery. This is intentional for corporate environments where ICMP (ping) is commonly blocked by firewalls.
 
 ---
 
