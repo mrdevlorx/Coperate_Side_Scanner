@@ -70,7 +70,7 @@ nmap --version
 
 ## 📂 Input File Format
 
-Place one `.txt` file per site in a folder. The filename (without extension) becomes the site name.
+Create a `.txt` file per site in a folder. The filename (without the file extension) will become the site name, so you can continue working with the individual files afterward.
 
 ```
 sites/
